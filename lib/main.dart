@@ -7,30 +7,36 @@ import 'package:product_app/presentation/pages/product_page.dart';
 import 'package:product_app/presentation/viewmodel/product_viewmodel.dart';
 
 void main() {
-  runApp(const MyApp());
+  final dio = Dio(
+    BaseOptions(
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 10),
+    ),
+  );
+
+  final remoteDataSource = ProductRemoteDatasource(dio);
+  final cacheDataSource = ProductCacheDatasource();
+  final repository = ProductRepositoryImpl(remoteDataSource, cacheDataSource);
+  final viewModel = ProductViewModel(repository);
+
+  runApp(MyApp(viewModel: viewModel));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final ProductViewModel viewModel;
 
-  // This widget is the root of your application.
+  const MyApp({super.key, required this.viewModel});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Product App',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
       ),
-      home: ProductPage(
-        viewModel: ProductViewModel(
-          ProductRepositoryImpl(
-            ProductRemoteDatasource(
-              Dio(),
-            ),
-            ProductCacheDatasource()
-          ),
-        ),
-      ),
+      home: ProductPage(viewModel: viewModel),
     );
   }
 }
