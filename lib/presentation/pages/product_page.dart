@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:product_app/presentation/viewmodel/product_state.dart';
 import 'package:product_app/presentation/viewmodel/product_viewmodel.dart';
+import 'package:product_app/presentation/pages/product_detail_page.dart';
 
 class ProductPage extends StatelessWidget {
   final ProductViewModel viewModel;
@@ -110,6 +111,17 @@ class ProductPage extends StatelessWidget {
                 margin:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 child: ListTile(
+                  // 👇 NAVEGAÇÃO PARA DETALHES
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            ProductDetailPage(product: product),
+                      ),
+                    );
+                  },
+
                   leading: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: Image.network(
@@ -134,6 +146,7 @@ class ProductPage extends StatelessWidget {
                     ),
                   ),
 
+                  // ⭐ FAVORITO
                   trailing: IconButton(
                     icon: Icon(
                       product.favorite
