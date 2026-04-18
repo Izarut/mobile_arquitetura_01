@@ -24,9 +24,22 @@ class ProductViewModel extends ChangeNotifier {
     } on Failure catch (f) {
       state.value = ProductState.error(f.message);
     } catch (e) {
-      state.value = ProductState.error(
-        'Erro inesperado: ${e.toString()}',
-      );
+      state.value = ProductState.error('Erro inesperado: ${e.toString()}');
     }
+  }
+
+  void toggleFavorite(int productId) {
+    final currentState = state.value;
+
+    if (currentState.products == null) return;
+
+    final updatedList = currentState.products!.map((product) {
+      if (product.id == productId) {
+        product.favorite = !product.favorite;
+      }
+      return product;
+    }).toList();
+
+    state.value = ProductState.success(updatedList);
   }
 }

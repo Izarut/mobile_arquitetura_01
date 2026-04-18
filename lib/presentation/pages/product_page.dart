@@ -19,21 +19,17 @@ class ProductPage extends StatelessWidget {
         builder: (context, state, _) {
           return switch (state.status) {
             ProductStatus.initial => _buildInitial(context),
-
             ProductStatus.loading => _buildLoading(),
-
             ProductStatus.success => _buildProductList(
                 context,
                 state,
                 fromCache: false,
               ),
-
             ProductStatus.cached => _buildProductList(
                 context,
                 state,
                 fromCache: true,
               ),
-
             ProductStatus.error => _buildError(context, state),
           };
         },
@@ -85,6 +81,8 @@ class ProductPage extends StatelessWidget {
     ProductState state, {
     required bool fromCache,
   }) {
+    final products = state.products ?? [];
+
     return Column(
       children: [
         if (fromCache)
@@ -102,12 +100,12 @@ class ProductPage extends StatelessWidget {
               ),
             ],
           ),
-
         Expanded(
           child: ListView.builder(
-            itemCount: state.products.length,
+            itemCount: products.length,
             itemBuilder: (context, index) {
-              final product = state.products[index];
+              final product = products[index];
+
               return Card(
                 margin:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -134,6 +132,19 @@ class ProductPage extends StatelessWidget {
                       color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
                     ),
+                  ),
+
+                  trailing: IconButton(
+                    icon: Icon(
+                      product.favorite
+                          ? Icons.star
+                          : Icons.star_border,
+                      color:
+                          product.favorite ? Colors.amber : null,
+                    ),
+                    onPressed: () {
+                      viewModel.toggleFavorite(product.id);
+                    },
                   ),
                 ),
               );
