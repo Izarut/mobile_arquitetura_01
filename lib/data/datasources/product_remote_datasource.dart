@@ -1,15 +1,39 @@
-import 'package:dio/dio.dart';
-import 'package:product_app/data/models/product_model.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:product_app/domain/entities/product.dart';
 
 class ProductRemoteDatasource {
-  final Dio client;
+  final String baseUrl = 'https://fakestoreapi.com/products';
 
-  ProductRemoteDatasource(this.client);
+  Future<List<Product>> fetchProducts() async {
+    final response = await http.get(Uri.parse(baseUrl));
 
-  Future<List<ProductModel>> getProducts() async {
-    final response = await client.get('https://fakestoreapi.com/products');
+    final List data = jsonDecode(response.body);
 
-    final List data = response.data;
-    return data.map((json) => ProductModel.fromJson(json)).toList();
+    return data.map((e) => Product.fromJson(e)).toList();
+  }
+
+  Future<Product> addProduct(Product product) async {
+    final response = await http.post(
+      Uri.parse(baseUrl),
+      body: jsonEncode(product.toJson()),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    return Product.fromJson(jsonDecode(response.body));
+  }
+
+  Future<Product> updateProduct(Product product) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/${product.id}'),
+      body: jsonEncode(product.toJson()),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    return Product.fromJson(jsonDecode(response.body));
+  }
+
+  Future<void> deleteProduct(int id) async {
+    await http.delete(Uri.parse('$baseUrl/$id'));
   }
 }

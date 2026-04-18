@@ -1,22 +1,12 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:product_app/data/datasources/product_cache_datasource.dart';
 import 'package:product_app/data/datasources/product_remote_datasource.dart';
 import 'package:product_app/data/repositories/product_repository_impl.dart';
 import 'package:product_app/presentation/pages/product_page.dart';
 import 'package:product_app/presentation/viewmodel/product_viewmodel.dart';
 
 void main() {
-  final dio = Dio(
-    BaseOptions(
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
-    ),
-  );
-
-  final remoteDataSource = ProductRemoteDatasource(dio);
-  final cacheDataSource = ProductCacheDatasource();
-  final repository = ProductRepositoryImpl(remoteDataSource, cacheDataSource);
+  final remoteDataSource = ProductRemoteDatasource();
+  final repository = ProductRepositoryImpl(remoteDataSource);
   final viewModel = ProductViewModel(repository);
 
   runApp(MyApp(viewModel: viewModel));

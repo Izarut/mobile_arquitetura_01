@@ -4,9 +4,13 @@ class CacheResult {
   final List<Product> products;
   final bool fromCache;
 
-  const CacheResult({required this.products, required this.fromCache});
+  CacheResult(this.products, this.fromCache);
 }
 
 abstract class ProductRepository {
   Future<CacheResult> getProducts();
+
+  Future<Product> addProduct(Product product);
+  Future<Product> updateProduct(Product product);
+  Future<void> deleteProduct(int id);
 }

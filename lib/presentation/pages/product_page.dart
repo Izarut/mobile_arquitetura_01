@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:product_app/presentation/viewmodel/product_state.dart';
 import 'package:product_app/presentation/viewmodel/product_viewmodel.dart';
 import 'package:product_app/presentation/pages/product_detail_page.dart';
+import 'package:product_app/presentation/pages/product_form_page.dart';
 
 class ProductPage extends StatelessWidget {
   final ProductViewModel viewModel;
@@ -35,10 +36,18 @@ class ProductPage extends StatelessWidget {
           };
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: viewModel.loadProducts,
-        icon: const Icon(Icons.refresh),
-        label: const Text('Carregar'),
+
+      // ➕ ADICIONAR PRODUTO
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ProductFormPage(viewModel: viewModel),
+            ),
+          );
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -111,7 +120,6 @@ class ProductPage extends StatelessWidget {
                 margin:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 child: ListTile(
-                  // 👇 NAVEGAÇÃO PARA DETALHES
                   onTap: () {
                     Navigator.push(
                       context,
@@ -133,11 +141,13 @@ class ProductPage extends StatelessWidget {
                           const Icon(Icons.broken_image, size: 48),
                     ),
                   ),
+
                   title: Text(
                     product.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
+
                   subtitle: Text(
                     'R\$ ${product.price.toStringAsFixed(2)}',
                     style: TextStyle(
@@ -146,18 +156,44 @@ class ProductPage extends StatelessWidget {
                     ),
                   ),
 
-                  // ⭐ FAVORITO
-                  trailing: IconButton(
-                    icon: Icon(
-                      product.favorite
-                          ? Icons.star
-                          : Icons.star_border,
-                      color:
-                          product.favorite ? Colors.amber : null,
-                    ),
-                    onPressed: () {
-                      viewModel.toggleFavorite(product.id);
-                    },
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          product.favorite
+                              ? Icons.star
+                              : Icons.star_border,
+                          color:
+                              product.favorite ? Colors.amber : null,
+                        ),
+                        onPressed: () {
+                          viewModel.toggleFavorite(product.id);
+                        },
+                      ),
+
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ProductFormPage(
+                                product: product,
+                                viewModel: viewModel,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () {
+                          viewModel.deleteProduct(product.id);
+                        },
+                      ),
+                    ],
                   ),
                 ),
               );
