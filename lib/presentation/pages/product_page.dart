@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:product_app/presentation/session/session_manager.dart';
-import 'package:product_app/presentation/pages/login_page.dart';
 import 'package:product_app/presentation/viewmodel/product_state.dart';
 import 'package:product_app/presentation/viewmodel/product_viewmodel.dart';
 import 'package:product_app/presentation/pages/product_detail_page.dart';
@@ -17,94 +15,8 @@ class ProductPage extends StatefulWidget {
 
 class _ProductPageState extends State<ProductPage> {
   @override
-  void initState() {
-    super.initState();
-    // Bloqueia acesso sem login — redireciona para LoginPage
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!SessionManager.instance.isAuthenticated) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginPage()),
-        );
-      }
-    });
-  }
-
-  void _handleLogout() {
-    SessionManager.instance.logout();
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginPage()),
-      (route) => false,
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final session = SessionManager.instance.currentUser;
-    final username = session?.username ?? '';
-
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Produtos'),
-            if (username.isNotEmpty)
-              Text(
-                'Olá, $username',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onPrimaryContainer
-                          .withOpacity(0.8),
-                    ),
-              ),
-          ],
-        ),
-        actions: [
-          // Botão de recarregar
-          ValueListenableBuilder<ProductState>(
-            valueListenable: widget.viewModel.state,
-            builder: (context, state, _) {
-              if (state.isLoading) return const SizedBox.shrink();
-              return IconButton(
-                icon: const Icon(Icons.refresh),
-                tooltip: 'Recarregar da API',
-                onPressed: widget.viewModel.loadProducts,
-              );
-            },
-          ),
-          // Botão de logout
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Sair',
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Text('Sair'),
-                  content: const Text('Deseja encerrar sua sessão?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      child: const Text('Cancelar'),
-                    ),
-                    FilledButton(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        _handleLogout();
-                      },
-                      child: const Text('Sair'),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
-      ),
       body: ValueListenableBuilder<ProductState>(
         valueListenable: widget.viewModel.state,
         builder: (context, state, _) {

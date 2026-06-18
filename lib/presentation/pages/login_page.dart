@@ -3,7 +3,7 @@ import 'package:product_app/core/errors/failure.dart';
 import 'package:product_app/data/datasources/auth_remote_datasource.dart';
 import 'package:product_app/data/repositories/auth_repository_impl.dart';
 import 'package:product_app/presentation/session/session_manager.dart';
-import 'package:product_app/presentation/pages/product_page.dart';
+import 'package:product_app/presentation/pages/home_page.dart';
 import 'package:product_app/presentation/viewmodel/product_viewmodel.dart';
 import 'package:product_app/data/datasources/product_remote_datasource.dart';
 import 'package:product_app/data/datasources/product_cache_datasource.dart';
@@ -82,7 +82,7 @@ class _LoginPageState extends State<LoginPage> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => ProductPage(viewModel: viewModel),
+          builder: (_) => HomePage(viewModel: viewModel),
         ),
       );
     } on Failure catch (f) {
