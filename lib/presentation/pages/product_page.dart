@@ -1,37 +1,112 @@
 import 'package:flutter/material.dart';
+import 'package:product_app/presentation/session/session_manager.dart';
+import 'package:product_app/presentation/pages/login_page.dart';
 import 'package:product_app/presentation/viewmodel/product_state.dart';
 import 'package:product_app/presentation/viewmodel/product_viewmodel.dart';
 import 'package:product_app/presentation/pages/product_detail_page.dart';
 import 'package:product_app/presentation/pages/product_form_page.dart';
 
-class ProductPage extends StatelessWidget {
+class ProductPage extends StatefulWidget {
   final ProductViewModel viewModel;
 
   const ProductPage({super.key, required this.viewModel});
 
   @override
+  State<ProductPage> createState() => _ProductPageState();
+}
+
+class _ProductPageState extends State<ProductPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Bloqueia acesso sem login — redireciona para LoginPage
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!SessionManager.instance.isAuthenticated) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginPage()),
+        );
+      }
+    });
+  }
+
+  void _handleLogout() {
+    SessionManager.instance.logout();
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+      (route) => false,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final session = SessionManager.instance.currentUser;
+    final username = session?.username ?? '';
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Produtos'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Produtos'),
+            if (username.isNotEmpty)
+              Text(
+                'Olá, $username',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onPrimaryContainer
+                          .withOpacity(0.8),
+                    ),
+              ),
+          ],
+        ),
         actions: [
-          // Botão de recarregar sempre visível na AppBar
+          // Botão de recarregar
           ValueListenableBuilder<ProductState>(
-            valueListenable: viewModel.state,
+            valueListenable: widget.viewModel.state,
             builder: (context, state, _) {
               if (state.isLoading) return const SizedBox.shrink();
               return IconButton(
                 icon: const Icon(Icons.refresh),
                 tooltip: 'Recarregar da API',
-                onPressed: viewModel.loadProducts,
+                onPressed: widget.viewModel.loadProducts,
+              );
+            },
+          ),
+          // Botão de logout
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Sair',
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Sair'),
+                  content: const Text('Deseja encerrar sua sessão?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Cancelar'),
+                    ),
+                    FilledButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _handleLogout();
+                      },
+                      child: const Text('Sair'),
+                    ),
+                  ],
+                ),
               );
             },
           ),
         ],
       ),
       body: ValueListenableBuilder<ProductState>(
-        valueListenable: viewModel.state,
+        valueListenable: widget.viewModel.state,
         builder: (context, state, _) {
           return switch (state.status) {
             ProductStatus.initial => _buildInitial(context),
@@ -51,13 +126,13 @@ class ProductPage extends StatelessWidget {
         },
       ),
 
-      // ➕ ADICIONAR PRODUTO (CRUD local)
+      // Botão de adicionar produto
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => ProductFormPage(viewModel: viewModel),
+              builder: (_) => ProductFormPage(viewModel: widget.viewModel),
             ),
           );
         },
@@ -92,9 +167,8 @@ class ProductPage extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
-          // ✅ BOTÃO PARA BUSCAR DA API — esse era o item faltante!
           FilledButton.icon(
-            onPressed: viewModel.loadProducts,
+            onPressed: widget.viewModel.loadProducts,
             icon: const Icon(Icons.cloud_download_outlined),
             label: const Text('Carregar da API'),
           ),
@@ -104,7 +178,8 @@ class ProductPage extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => ProductFormPage(viewModel: viewModel),
+                  builder: (_) =>
+                      ProductFormPage(viewModel: widget.viewModel),
                 ),
               );
             },
@@ -146,7 +221,7 @@ class ProductPage extends StatelessWidget {
             const Text('Nenhum produto encontrado.'),
             const SizedBox(height: 12),
             FilledButton.icon(
-              onPressed: viewModel.loadProducts,
+              onPressed: widget.viewModel.loadProducts,
               icon: const Icon(Icons.refresh),
               label: const Text('Recarregar'),
             ),
@@ -159,15 +234,14 @@ class ProductPage extends StatelessWidget {
       children: [
         if (fromCache)
           MaterialBanner(
-            backgroundColor:
-                Theme.of(context).colorScheme.secondaryContainer,
+            backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
             content: const Text(
               'Sem conexão com a API — exibindo dados salvos localmente.',
             ),
             leading: const Icon(Icons.wifi_off),
             actions: [
               TextButton(
-                onPressed: viewModel.loadProducts,
+                onPressed: widget.viewModel.loadProducts,
                 child: const Text('Tentar novamente'),
               ),
             ],
@@ -186,12 +260,10 @@ class ProductPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) =>
-                            ProductDetailPage(product: product),
+                        builder: (_) => ProductDetailPage(product: product),
                       ),
                     );
                   },
-
                   leading: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: Image.network(
@@ -203,13 +275,11 @@ class ProductPage extends StatelessWidget {
                           const Icon(Icons.broken_image, size: 48),
                     ),
                   ),
-
                   title: Text(
                     product.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-
                   subtitle: Text(
                     'R\$ ${product.price.toStringAsFixed(2)}',
                     style: TextStyle(
@@ -217,7 +287,6 @@ class ProductPage extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -226,14 +295,12 @@ class ProductPage extends StatelessWidget {
                           product.favorite
                               ? Icons.star
                               : Icons.star_border,
-                          color:
-                              product.favorite ? Colors.amber : null,
+                          color: product.favorite ? Colors.amber : null,
                         ),
                         onPressed: () {
-                          viewModel.toggleFavorite(product.id);
+                          widget.viewModel.toggleFavorite(product.id);
                         },
                       ),
-
                       IconButton(
                         icon: const Icon(Icons.edit),
                         onPressed: () {
@@ -242,17 +309,16 @@ class ProductPage extends StatelessWidget {
                             MaterialPageRoute(
                               builder: (_) => ProductFormPage(
                                 product: product,
-                                viewModel: viewModel,
+                                viewModel: widget.viewModel,
                               ),
                             ),
                           );
                         },
                       ),
-
                       IconButton(
                         icon: const Icon(Icons.delete),
                         onPressed: () {
-                          viewModel.deleteProduct(product.id);
+                          widget.viewModel.deleteProduct(product.id);
                         },
                       ),
                     ],
@@ -294,7 +360,7 @@ class ProductPage extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             FilledButton.icon(
-              onPressed: viewModel.loadProducts,
+              onPressed: widget.viewModel.loadProducts,
               icon: const Icon(Icons.refresh),
               label: const Text('Tentar novamente'),
             ),

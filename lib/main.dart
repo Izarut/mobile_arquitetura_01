@@ -1,23 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:product_app/data/datasources/product_cache_datasource.dart';
-import 'package:product_app/data/datasources/product_remote_datasource.dart';
-import 'package:product_app/data/repositories/product_repository_impl.dart';
-import 'package:product_app/presentation/pages/home_page.dart';
-import 'package:product_app/presentation/viewmodel/product_viewmodel.dart';
+import 'package:product_app/presentation/pages/login_page.dart';
 
 void main() {
-  final remoteDataSource = ProductRemoteDatasource();
-  final cacheDataSource = ProductCacheDatasource();
-  final repository = ProductRepositoryImpl(remoteDataSource, cacheDataSource);
-  final viewModel = ProductViewModel(repository);
-
-  runApp(MyApp(viewModel: viewModel));
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final ProductViewModel viewModel;
-
-  const MyApp({super.key, required this.viewModel});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +17,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: HomePage(viewModel: viewModel),
+      home: const LoginPage(),
     );
   }
 }

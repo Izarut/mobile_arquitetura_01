@@ -4,7 +4,7 @@ class ProductModel {
   final int id;
   final String title;
   final double price;
-  final String image;
+  final String image; // internamente mantemos "image" como nome do campo
   final String? description;
   bool favorite;
 
@@ -17,17 +17,19 @@ class ProductModel {
     this.favorite = false,
   });
 
+  /// Cria um ProductModel a partir do JSON da DummyJSON.
+  /// A API retorna o campo de imagem como "thumbnail".
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     return ProductModel(
-      id: json['id'],
-      title: json['title'],
+      id: (json['id'] as num).toInt(),
+      title: json['title'] as String,
       price: (json['price'] as num).toDouble(),
-      image: json['image'],
-      description: json['description'],
+      image: json['thumbnail'] as String, // DummyJSON usa "thumbnail"
+      description: json['description'] as String?,
     );
   }
 
-  /// Converte uma entidade de domínio para model (usado ao salvar no cache)
+  /// Converte uma entidade de domínio para model (usado ao salvar no cache).
   factory ProductModel.fromEntity(Product product) {
     return ProductModel(
       id: product.id,
@@ -39,7 +41,7 @@ class ProductModel {
     );
   }
 
-  /// Converte o model de volta para entidade de domínio
+  /// Converte o model de volta para entidade de domínio.
   Product toEntity() {
     return Product(
       id: id,
@@ -51,6 +53,7 @@ class ProductModel {
     );
   }
 
+  /// Serialização para cache local (mantém "image" como chave interna).
   Map<String, dynamic> toJson() {
     return {
       'id': id,
